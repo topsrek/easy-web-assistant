@@ -3,7 +3,7 @@
 - Repository: https://github.com/topsrek/easy-web-assistant
 - Visibility: public
 - Branch: `main`
-- Initial published snapshot commit: pending first push
+- Initial published snapshot commit: `c5c95f7108118da97cb5d19dc285425a8bec2f93`
 - Snapshot date: 2026-10-02
 
 ## Snapshot evidence
