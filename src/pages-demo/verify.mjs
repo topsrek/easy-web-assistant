@@ -149,13 +149,16 @@ try {
   assert.ok(await page.locator('link[rel="stylesheet"][href^="/easy-web-assistant/assets/"]').count(), 'Stylesheet did not load from the Pages subpath');
 
   const stopCase = { prompt: 'Find a test train journey', title: 'A simple trip to the city' };
+  const cardsBeforeStop = await page.locator('.a2ui-card').count();
+  const approvalsBeforeStop = await page.locator('.approval-review').count();
   const composer = page.getByLabel('Describe what you need');
   await composer.fill(stopCase.prompt);
   await composer.press('Enter');
   await page.getByRole('button', { name: 'Stop', exact: true }).click();
   await page.getByText('The browser demo task was stopped.', { exact: true }).waitFor({ state: 'visible', timeout: 3_000 });
   await delay(1300);
-  assert.equal(await page.getByRole('heading', { name: stopCase.title, exact: true }).count(), 0, 'A stopped task rendered stale cards');
+  assert.equal(await page.locator('.a2ui-card').count(), cardsBeforeStop, 'A stopped task rendered stale A2UI cards');
+  assert.equal(await page.locator('.approval-review').count(), approvalsBeforeStop, 'A stopped task created a stale approval');
   await page.getByRole('button', { name: 'New task' }).click();
   await page.getByRole('heading', { name: 'What can I help you with?', exact: true }).waitFor({ state: 'visible', timeout: 5_000 });
 
