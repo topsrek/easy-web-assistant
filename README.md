@@ -4,13 +4,13 @@ An assistant for voice and text that aims to present information about events, j
 
 ## Current status
 
-The codebase contains the interface, local profile storage, A2UI cards, controlled fictional test offers, server modules, and model configuration. At an earlier QA checkpoint, **142/142 tests across 15 files** passed (`npm test -- --maxWorkers=1`); a standalone Vite build bundled **2,147 modules** in 1.98 seconds. Those results apply to that earlier state. A limited profile smoke test against the built preview passed **1/1**, covering setup, save, reload, edit, delete, and the session-only fallback. The latest QA update reports a passing TypeScript check and a successful Vite build of the Pages demo; the preview returned HTTP 200 at the repository project path. The first GitHub Actions run also passed typecheck and Vite build but stopped before deploy because the Chromium Stop assertion matched a static preview title. That selector is narrowed to A2UI cards and approvals; the rerun is pending. An isolated local Edge UI smoke hung and was stopped without a screenshot. Visual desktop/mobile acceptance and full end-to-end acceptance therefore remain open; a successful `npm run build` has not been established. Implementation and acceptance of the PRD V0.3 additions are still incomplete.
+The browser-only demo is live at [https://topsrek.github.io/easy-web-assistant/](https://topsrek.github.io/easy-web-assistant/). Its GitHub Actions workflow passed typecheck, the static Vite build, the Chromium smoke checks, and deployment for commit `eafd607`. This verifies the hosted demo only; it uses fictional in-memory offers and does not connect to a backend, model API, or provider website.
 
-No integration with an existing provider website has been verified. The demo uses clearly labeled fictional test offers only; it does not show real availability, create real bookings, or take payments. See [docs/integration-limits.md](docs/integration-limits.md) for details and [docs/local-start.md](docs/local-start.md) for Windows setup.
+The broader app includes the interface, local profile storage, A2UI cards, and server modules. The Pages checks do not cover the server-backed app or complete acceptance of the PRD V0.3 additions. See [docs/acceptance.md](docs/acceptance.md) for the evidence and remaining coverage.
 
 ## Requirements and startup
 
-The intended local environment is Windows, Node.js 24, and npm 11. The last inspected environment had Node `v24.19.0` and npm `11.17.0`. The intended development startup is:
+For local development, use Windows, Node.js 24, and npm 11. Start the development server with:
 
 ```powershell
 # From the repository root
@@ -18,18 +18,16 @@ npm ci
 npm run dev
 ```
 
-`dev` starts Vite and the local Node server. Successful startup has not yet been confirmed; see the current status and [startup guide](docs/local-start.md). There is no login, and the fictional demo does not require an API key. The app is not deployed.
+`dev` starts Vite and the local Node server. See the [startup guide](docs/local-start.md) for setup details. The hosted fictional demo requires no login or provider credentials. Local model-backed features may require a provider configured in `.env`.
 
 ## Privacy and approvals
 
 The profile is intended to be stored in a versioned format in the current browser's LocalStorage. Profile fields are limited to what each task needs; model processing and data transfer to a target website are separate steps. Before any action that changes state, the review should identify the provider, exact fields and values to be sent, known and unknown costs, consequences, and the action requiring explicit confirmation. The demo uses synthetic offer and personal data.
 
-## Model roles
+## Local provider configuration
 
-The local configuration assigns Gemini to conversation and task control, Gemma to website interpretation and information structuring, and a separately configured Gemini Live model to voice. Configuration values do not prove that access, model responses, or audio processing have been verified. See [docs/google-cloud-setup.md](docs/google-cloud-setup.md) for details.
-
-The Google Cloud/GDG credit allocation and exact API access route remain unresolved. An automatic switch to Vertex was reverted; demo mode remains active, and unverified local keys remain disabled. Model roles are configuration only, not a confirmed live connection.
+Copy `.env.example` to an ignored local `.env` file and use the variable names shown there to configure a supported provider for local model-backed features. Keep credentials local and never commit them. The Pages demo does not use provider credentials. See [docs/google-cloud-setup.md](docs/google-cloud-setup.md) for general setup guidance.
 
 ## Development
 
-The available npm scripts are defined in `package.json`: `dev`, `start`, `test`, `test:e2e`, `typecheck`, and `build`. Under the project contract, QA owns comprehensive project checks, including typecheck and build. The latest typecheck passed, but the full `npm run build` and browser acceptance remain unverified. See the [QA status](docs/acceptance.md) for detailed results.
+The available npm scripts are defined in `package.json`: `dev`, `start`, `test`, `test:e2e`, `typecheck`, and `build`. Under the project contract, QA owns comprehensive project checks, including typecheck and build. The latest Pages workflow passed typecheck, static build, Chromium smoke, and deployment. The full `npm run build` and manual desktop/mobile acceptance remain unverified. See the [QA status](docs/acceptance.md) for detailed results.

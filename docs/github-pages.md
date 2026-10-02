@@ -12,11 +12,10 @@ The Pages build sets `VITE_PAGES_DEMO=true`; Vite uses the project-site base `/e
 
 The workflow uses the lockfile with `npm ci` on Node.js 24, runs `npm run typecheck`, installs Chromium, builds the static Vite app, and runs `src/pages-demo/verify.mjs` against the built output under the project-site base. The browser smoke checks page and asset MIME types, the visible demo disclosure, disabled voice, all six fictional result kinds, approval, Stop, Reset, and the absence of external/server requests. It does not run at a mobile viewport. The Pages artifact is uploaded only after these checks pass. The `build` job has read-only repository content permission. Only `deploy` receives `pages: write` and `id-token: write`, depends on the completed `build` job, and publishes to the `github-pages` environment. Deployments are serialized.
 
-## First deployment
+## Deployment status
 
-GitHub Pages must be configured to use **GitHub Actions** as its publishing source. After `.github/workflows/pages.yml` is on `main`, the push workflow builds and deploys the artifact. The successful deploy job exposes the site URL as its `github-pages` environment URL; for this project site the expected address is `https://topsrek.github.io/easy-web-assistant/`.
+The project site is live at [https://topsrek.github.io/easy-web-assistant/](https://topsrek.github.io/easy-web-assistant/). GitHub Actions run [37078417303](https://github.com/topsrek/easy-web-assistant/actions/runs/37078417303) passed the Chromium smoke and deployed commit `eafd6073c2cef4752396a53506a5b682f3421f24` through the `github-pages` environment.
 
-Check the current repository Pages settings and the successful workflow run before sharing the URL. A source file or successful local build alone does not mean the site is published.
 
 ## Static-hosting boundary
 
