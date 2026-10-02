@@ -24,10 +24,10 @@ const serviceFixture = (): Offer => ({
     { label: 'Materials', value: 'Parts may be needed; cost unknown', completeness: 'partial' },
   ],
   details: [
-    { title: 'Fictional provider information', text: 'This is a fictional local test provider listing, not a real service company.' },
-    { title: 'Prerequisites', text: 'Describe the issue in the request. No source-verified qualification or appointment is listed.' },
-    { title: 'Cancellation', text: 'Cancellation conditions are not supplied by this fictional listing.' },
-    { title: 'Data use', text: 'The test provider receives only the fields shown in the approval.' },
+    { title: 'Fictional provider information', text: 'This is a fictional local test provider listing, not a real service company.', completeness: 'complete' },
+    { title: 'Prerequisites', text: 'Describe the issue in the request. No source-verified qualification or appointment is listed.', completeness: 'partial' },
+    { title: 'Cancellation', text: 'Cancellation conditions are not supplied by this fictional listing.', completeness: 'unknown' },
+    { title: 'Data use', text: 'The test provider receives only the fields shown in the approval.', completeness: 'complete' },
   ],
   images: [
     { url: 'http://127.0.0.1:3001/fixture/images/test-service.svg', alt: 'Original fictional test service illustration', sourceUrl: 'http://127.0.0.1:3001/fixture/service' },
@@ -119,7 +119,7 @@ describe('serviceProvider', () => {
 
   it('keeps all offer information, including distinct conditions and original image variants', () => {
     const input = serviceFixture();
-    input.details.push({ title: 'Materials and access', text: 'A replacement part may be required; the entry route is not checked.' });
+    input.details.push({ title: 'Materials and access', text: 'A replacement part may be required; the entry route is not checked.', completeness: 'partial' });
     const normalized = normalizeServiceOffer(input);
     expect(normalized.details).toContainEqual(expect.objectContaining({ title: 'Materials and access', text: 'A replacement part may be required; the entry route is not checked.' }));
     expect(normalized.images).toEqual(input.images);

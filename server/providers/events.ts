@@ -6,7 +6,8 @@ type EventDetail = Offer['details'][number];
 const UNKNOWN = 'Unknown — not provided by this source.';
 
 function known(value: string | undefined): value is string {
-  return Boolean(value?.trim()) && !/^(?:unknown\b|no verified\b|not provided\b)/i.test(value.trim());
+  return typeof value === 'string' && value.trim().length > 0
+    && !/^(?:unknown\b|no verified\b|not provided\b)/i.test(value.trim());
 }
 
 function completeness(value: string): EventFact['completeness'] {

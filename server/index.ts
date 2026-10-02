@@ -75,7 +75,9 @@ export async function createAppServer(options: CreateAppServerOptions = {}) {
     const record = sessions.get(id);
     const offers = record?.session.getFixtureOffers(kindResult.data);
     if (!record || !offers?.length) return res.status(404).send('This test listing is no longer available.');
-    const localOrigin = browserOriginFor(String(httpServer.address() && typeof httpServer.address() !== 'string' ? httpServer.address().port : settings.port));
+    const address = httpServer.address();
+    const fixturePort = address && typeof address !== 'string' ? address.port : settings.port;
+    const localOrigin = browserOriginFor(String(fixturePort));
     res.type('html').setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
     res.send(fixtureHtml(kindResult.data, localOrigin, id, offers));
   });
@@ -94,9 +96,9 @@ export async function createAppServer(options: CreateAppServerOptions = {}) {
 
   app.post('/fixture/book', (req, res) => {
     const { session: id, sessionId, offerId, capability, inputs, action } = req.body as Record<string, unknown>;
-    const effectiveId = typeof sessionId === 'string' ? sessionId : id;
-    const record = typeof effectiveId === 'string' ? sessions.get(effectiveId) : undefined;
-    if (!record || typeof offerId !== 'string' || typeof capability !== 'string' || !isSimpleInputs(inputs)) return res.status(403).send('A current approved test action is required.');
+    const effectiveId = typeof sessionId === 'string' ? sessionId : typeof id === 'string' ? id : undefined;
+    const record = effectiveId ? sessions.get(effectiveId) : undefined;
+    if (!effectiveId || !record || typeof offerId !== 'string' || typeof capability !== 'string' || !isSimpleInputs(inputs)) return res.status(403).send('A current approved test action is required.');
     const offers = (['event', 'journey', 'appointment', 'government', 'service', 'leisure'] as const).flatMap((kind) => record.session.getFixtureOffers(kind));
     const offer = offers.find((candidate) => candidate.id === offerId);
     const expectedAction = offer && (offer.kind === 'government' ? 'test_appointment_request'
@@ -136,9 +138,11 @@ export async function createAppServer(options: CreateAppServerOptions = {}) {
     sessions.set(session.id, record);
     void session.start();
     socket.on('message', async (data, isBinary) => {
-      if (isBinary || data.length > 128 * 1024) { socket.close(1009, 'Message too large'); return; }
+      const byteLength = Array.isArray(data) ? data.reduce((total, chunk) => total + chunk.byteLength, 0) : data.byteLength;
+      if (isBinary || byteLength > 128 * 1024) { socket.close(1009, 'Message too large'); return; }
+      const payload = Array.isArray(data) ? Buffer.concat(data) : Buffer.isBuffer(data) ? data : Buffer.from(data);
       let parsed: unknown;
-      try { parsed = JSON.parse(data.toString()); } catch { socket.send(JSON.stringify({ type: 'error', message: 'The message must be valid JSON.' })); return; }
+      try { parsed = JSON.parse(payload.toString()); } catch { socket.send(JSON.stringify({ type: 'error', message: 'The message must be valid JSON.' })); return; }
       const message = clientMessageSchema.safeParse(parsed);
       if (!message.success) { socket.send(JSON.stringify({ type: 'error', message: 'The message does not match the supported protocol.' })); return; }
       try { await session.handle(message.data); }

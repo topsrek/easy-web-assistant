@@ -25,11 +25,12 @@ Scope: PRD V0.2 base flows (events, journeys, appointments) and the shell/profil
 
 ## Abnahme-status
 
-- Source review confirms the UI presents a clearly labelled fictional test provider, missing event fees and appointment costs, a source link, approval disclosures, a single explicit confirmation button, and a same-session browser screenshot panel.
-- The test configuration sets `PLAYWRIGHT_BROWSERS_PATH` to the workspace-local `.playwright-browsers` directory. No browser install or test run has been verified in this QA turn yet.
-- No post-expansion unit, typecheck, build, integration, or E2E result is claimed here. A previous frontend status reported 36/36 unit tests before the current provider updates; it is historical evidence only.
+- Source review confirms the Pages build selects fictional local fixtures, displays a demo disclosure, uses an in-memory transport, and disables voice. Root corrected the preview start and verified that the HTML, JavaScript, and CSS return HTTP 200 with the expected asset MIME types. That does not prove React rendered; no browser visual check has passed.
+- `npm run typecheck` passed with exit 0 after the Pages transport `readyState` fix. `VITE_PAGES_DEMO=true npx vite build` passed, transforming 2,151 modules; that build preceded the final type-only `readyState:number` edit.
+- The repaired-tree unit/integration suite passed 142/142 before Pages integration. Broker/service/controller tests passed 23/23 on their corrected sources before the Pages integration was complete. These are scoped/historical results, not a full post-Pages suite pass.
+- Earlier profile and mobile Edge preview smokes passed against the pre-Pages app. The current Pages visual smoke did not produce a screenshot or a UI assertion; the local Edge attempt stalled. The Pages workflow includes `src/pages-demo/verify.mjs`, which starts its child preview with the explicit `/easy-web-assistant/` base and checks HTML, JavaScript, CSS, and SVG MIME types. It exercises the demo banner, approval checkbox, six simulated result kinds, Stop, Reset, and the absence of external/server requests. The script does not yet set a mobile viewport, and the CI smoke has not run.
 - Government (6 tests) and service (9 tests) provider workers separately reported targeted unit suites passing against read-only fake/fixture readers. Those checks do not establish their controller/broker/UI integration and have not been rerun by QA.
-- Full typecheck/build and the authored test suites remain pending a healthy shell/browser runtime and a free QA check lock.
+- The typecheck and Pages Vite build have completed successfully. A full unit/integration rerun after the Pages source integration remains pending, and current Pages UI acceptance is pending the planned remote Chromium smoke.
 
 ## Open coverage limits
 
@@ -37,4 +38,4 @@ Scope: PRD V0.2 base flows (events, journeys, appointments) and the shell/profil
 - Profile deletion confirmation is covered, as is blocked persistence. Corrupt/unsupported profile-envelope recovery and browser reload after a storage exception remain outside the current E2E file.
 - Accessibility checks assert keyboard reachability, focus restoration for the gallery, responsive screenshot reuse and 200% CSS zoom layout access. They do not replace manual screen-reader testing or a full standards audit.
 - Live voice/audio is unavailable in the controlled demo (`voiceAvailable: false`); only its separation from confirmation is in scope for this demo acceptance.
-- PRD V0.3 government, services, and leisure have draft browser cases in the E2E file for their source facts, unknown charges, exact action labels and request-only outcomes. Passing remains blocked on complete controller, fixture, A2UI, profile projection and result integrations, then execution of those cases.
+- The Pages demo has six synthetic categories and approval/result paths, but those Pages-specific flows still need the planned remote Chromium smoke. The existing E2E helper `finishProfile` in `tests/e2e/acceptance.spec.ts` covers profile setup; `search` and `selectAndCheckDisclosure` cover the previous WebSocket-backed app. `search` expects a `.browser-screenshot` and live fixture URL, so it cannot be reused unchanged for the static Pages fixture preview.

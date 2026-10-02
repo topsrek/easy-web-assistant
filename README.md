@@ -4,7 +4,7 @@ An assistant for voice and text that aims to present information about events, j
 
 ## Current status
 
-The codebase contains the interface, local profile storage, A2UI cards, controlled fictional test offers, server modules, and model configuration. At an earlier QA checkpoint, **142/142 tests across 15 files** passed (`npm test -- --maxWorkers=1`); a standalone Vite build bundled **2,147 modules** in 1.98 seconds. These results apply to that earlier state and do not establish a complete build. A limited profile smoke test against the built preview passed **1/1**, covering setup, save, reload, edit, delete, and the session-only fallback. In the latest QA update, a controller smoke test passed **4/4**, and a mobile preview smoke test passed **1/1**. TypeScript diagnostics remain, and the responsible implementers are addressing them. A successful `npm run build` or full end-to-end acceptance has not been established. Implementation and acceptance of the PRD V0.3 additions are still incomplete.
+The codebase contains the interface, local profile storage, A2UI cards, controlled fictional test offers, server modules, and model configuration. At an earlier QA checkpoint, **142/142 tests across 15 files** passed (`npm test -- --maxWorkers=1`); a standalone Vite build bundled **2,147 modules** in 1.98 seconds. Those results apply to that earlier state. A limited profile smoke test against the built preview passed **1/1**, covering setup, save, reload, edit, delete, and the session-only fallback. The latest QA update reports a passing TypeScript check and a successful Vite build of the Pages demo; the preview returned HTTP 200 at the repository project path. An isolated Edge UI smoke hung and was stopped without a screenshot. Visual desktop/mobile acceptance and full end-to-end acceptance therefore remain open; a successful `npm run build` has not been established. Implementation and acceptance of the PRD V0.3 additions are still incomplete.
 
 No integration with an existing provider website has been verified. The demo uses clearly labeled fictional test offers only; it does not show real availability, create real bookings, or take payments. See [docs/integration-limits.md](docs/integration-limits.md) for details and [docs/local-start.md](docs/local-start.md) for Windows setup.
 
@@ -13,7 +13,7 @@ No integration with an existing provider website has been verified. The demo use
 The intended local environment is Windows, Node.js 24, and npm 11. The last inspected environment had Node `v24.19.0` and npm `11.17.0`. The intended development startup is:
 
 ```powershell
-Set-Location D:\DEV\easy-web-assistant
+# From the repository root
 npm ci
 npm run dev
 ```
@@ -32,4 +32,4 @@ The Google Cloud/GDG credit allocation and exact API access route remain unresol
 
 ## Development
 
-The available npm scripts are defined in `package.json`: `dev`, `start`, `test`, `test:e2e`, `typecheck`, and `build`. Under the project contract, QA owns comprehensive project checks, including typecheck and build. The earlier test/Vite results and the latest limited controller/mobile smoke tests are separate pieces of evidence. TypeScript diagnostics remain; the full build and browser acceptance are still open. See the [QA status](docs/acceptance.md), which the QA owner will update after the current fixes.
+The available npm scripts are defined in `package.json`: `dev`, `start`, `test`, `test:e2e`, `typecheck`, and `build`. Under the project contract, QA owns comprehensive project checks, including typecheck and build. The latest typecheck passed, but the full `npm run build` and browser acceptance remain unverified. See the [QA status](docs/acceptance.md) for detailed results.

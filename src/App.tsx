@@ -11,8 +11,13 @@ import {
 import { useAudio } from './hooks/useAudio';
 import { decodeMessage, parseServerEvent } from './hooks/protocol';
 import { ProfileWizard, useLocalProfile } from './profile';
+import { PagesDemoTransport } from './pages-demo/transport';
+import { DemoFixturePreview } from './pages-demo/DemoFixturePreview';
+import { pagesDemoOffers, pagesDemoOffersForText } from './pages-demo/fixtures';
 import { emptyProfile, neededProfileFor, type Offer, type Profile, type ServerEvent } from '../shared/schema';
 import './styles.css';
+
+const PAGES_DEMO = import.meta.env.VITE_PAGES_DEMO === 'true';
 
 type ChatMessage = { id: string; role: 'assistant' | 'user'; text: string; local?: boolean; deliveryUnknown?: boolean };
 type CardEntry = { id: string; messages: unknown[]; version: number };
@@ -47,13 +52,14 @@ export default function App() {
   const [voiceAvailable, setVoiceAvailable] = useState(false);
   const [status, setStatus] = useState<{ text: string; state: string; phase?: string }>({ text: 'Ready when you are.', state: 'idle' });
   const [browser, setBrowser] = useState<Extract<ServerEvent, { type: 'browser' }> | null>(null);
+  const [demoPreview, setDemoPreview] = useState<Offer | null>(null);
   const [approval, setApproval] = useState<Approval | null>(null);
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [pendingSelection, setPendingSelection] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const [newContent, setNewContent] = useState(false);
   const [socketRevision, setSocketRevision] = useState(0);
-  const socketRef = useRef<WebSocket | null>(null);
+  const socketRef = useRef<WebSocket | PagesDemoTransport | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const shouldFollowRef = useRef(true);
   const pendingUserRef = useRef<string[]>([]);
@@ -86,7 +92,9 @@ export default function App() {
 
   useEffect(() => {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const socket = new WebSocket(`${protocol}//${location.host}/ws`);
+    const socket = PAGES_DEMO
+      ? new PagesDemoTransport()
+      : new WebSocket(`${protocol}//${location.host}/ws`);
     socketRef.current = socket;
     setConnection('connecting');
     socket.onopen = () => {
@@ -145,7 +153,7 @@ export default function App() {
       }
       if (event.type === 'ready') {
         setServerMode(event.mode);
-        setVoiceAvailable(event.voiceAvailable);
+        setVoiceAvailable(!PAGES_DEMO && event.voiceAvailable);
       } else if (event.type === 'message') {
         const pending = event.role === 'user' ? pendingUserRef.current.shift() : undefined;
         setTimeline((existing) => {
@@ -183,7 +191,9 @@ export default function App() {
           const message = {
             id: `phase-${event.version}-${event.phase}-${Date.now()}`,
             role: 'assistant' as const,
-            text: phaseText(event.phase, requestKind),
+            text: PAGES_DEMO && event.phase === 'submitted'
+              ? 'Recording a simulated result in this browser. No provider is contacted.'
+              : phaseText(event.phase, requestKind),
           };
           setTimeline((existing) => [...existing, { kind: 'message', id: message.id, message }]);
         }
@@ -213,7 +223,7 @@ export default function App() {
         taskDispatchRef.current = false;
         setConfirmChecked(false);
         setStatus({
-          text: event.outcome === 'request_received'
+          text: PAGES_DEMO ? event.text : event.outcome === 'request_received'
             ? 'The test request was received. This does not confirm a real appointment, service, or enrollment.'
             : event.state === 'confirmed'
               ? 'The test action is confirmed.'
@@ -334,6 +344,7 @@ export default function App() {
     const projected = category ? profileFor(category) : emptyProfile;
     const localId = `local-user-${Date.now()}-${Math.random()}`;
     if (!sendRaw({ type: 'task', text: clean, profile: projected })) return false;
+    if (PAGES_DEMO) setDemoPreview(pagesDemoOffersForText(clean)[0] ?? null);
     taskDispatchRef.current = true;
     currentTaskKindRef.current = category;
     invalidate();
@@ -367,6 +378,7 @@ export default function App() {
       return;
     }
     currentTaskKindRef.current = kind;
+    if (PAGES_DEMO) setDemoPreview(pagesDemoOffers.find((offer) => offer.id === offerId) ?? null);
     taskDispatchRef.current = true;
     setStatus({ text: 'Preparing a review for this option…', state: 'working' });
   }, [approval, sendRaw]);
@@ -389,6 +401,7 @@ export default function App() {
     setPendingSelection(false);
     sendRaw({ type: 'reset' });
     setBrowser(null);
+    setDemoPreview(null);
     audio.stop();
     setStatus({ text: 'Ready when you are.', state: 'idle' });
   }, [discardPendingUserMessages, invalidate, sendRaw]);
@@ -404,7 +417,7 @@ export default function App() {
     taskDispatchRef.current = true;
     const profileSubset = profileFor(approval.offer.kind);
     setApproval(null);
-    setStatus({ text: 'Submitting the approved test action…', state: 'working', phase: 'submitted' });
+    setStatus({ text: PAGES_DEMO ? 'Recording the approved simulation in this browser…' : 'Submitting the approved test action…', state: 'working', phase: 'submitted' });
     if (!sendRaw({ type: 'confirm', token: approval.token, version: approval.version, profile: profileSubset })) {
       taskDispatchRef.current = false;
       setStatus({ text: 'Connection lost before the result was received. Check the test provider state before taking another action.', state: 'paused', phase: 'unclear' });
@@ -461,7 +474,7 @@ export default function App() {
     setNewContent(false);
   };
 
-  const connectionLabel = connection === 'connected' ? `${serverMode === 'demo' ? 'Test server' : serverMode === 'live' ? 'Assistant connected' : 'Connected'}` : connection === 'connecting' ? 'Connecting' : 'Disconnected';
+  const connectionLabel = connection === 'connected' ? `${PAGES_DEMO ? 'Browser demo' : serverMode === 'demo' ? 'Test server' : serverMode === 'live' ? 'Assistant connected' : 'Connected'}` : connection === 'connecting' ? 'Connecting' : 'Disconnected';
   const browserUrl = browser?.url;
   const browserHost = useMemo(() => {
     if (!browserUrl) return null;
@@ -485,13 +498,15 @@ export default function App() {
           </button>
           <div className="mobile-view-switch" role="group" aria-label="Choose view">
             <button type="button" aria-pressed={viewMode === 'chat'} onClick={() => setViewMode('chat')}>Chat</button>
-            <button type="button" aria-pressed={viewMode === 'website'} onClick={() => setViewMode('website')}>Website</button>
+            <button type="button" aria-pressed={viewMode === 'website'} onClick={() => setViewMode('website')}>{PAGES_DEMO ? 'Preview' : 'Website'}</button>
           </div>
           <button className="icon-label-button reset-button" type="button" aria-label="New task" onClick={reset}>
             <X size={20} aria-hidden="true" /><span>New task</span>
           </button>
         </div>
       </header>
+
+      {PAGES_DEMO && <p className="pages-demo-banner" role="note">Browser demo · fictional data · no real actions. Everything is simulated in this browser; no provider, model, or microphone is connected. Use fictional profile details.</p>}
 
       {(connectionError || storageError || audio.error) && (
         <div className="alert-banner" role="status">
@@ -523,7 +538,7 @@ export default function App() {
               <div className="welcome-content">
                 <div className="assistant-intro">
                   <span className="assistant-avatar" aria-hidden="true">e</span>
-                  <p>I can help find events, plan journeys, arrange appointments, and prepare test requests for civic services, home services, and community courses. I’ll show you what I find and ask before any test action.</p>
+                  <p>{PAGES_DEMO ? 'Try six fixed fictional examples for events, journeys, appointments, civic services, repairs, and community courses. Review the details and confirm a simulation. Nothing is searched live or submitted to a provider.' : 'I can help find events, plan journeys, arrange appointments, and prepare test requests for civic services, home services, and community courses. I’ll show you what I find and ask before any test action.'}</p>
                 </div>
                 <div className="example-grid" aria-label="Try an example">
                   {examples.map((example) => (
@@ -533,7 +548,7 @@ export default function App() {
                     </button>
                   ))}
                 </div>
-                <p className="privacy-note"><ShieldCheck size={18} aria-hidden="true" /> Your profile is stored in this browser. The assistant processes your request to help find options; you’ll review any details shared with a test website before confirming.</p>
+                <p className="privacy-note"><ShieldCheck size={18} aria-hidden="true" /> {PAGES_DEMO ? 'Your profile stays in this browser. The demo uses fictional listings and records simulated results locally; no details are sent to a provider.' : 'Your profile is stored in this browser. The assistant processes your request to help find options; you’ll review any details shared with a test website before confirming.'}</p>
               </div>
             )}
             {timeline.map((item) => {
@@ -563,21 +578,21 @@ export default function App() {
               <textarea id="task-input" rows={2} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => {
                 if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submitTask(draft); }
               }} placeholder="Tell me what you need…" maxLength={6000} />
-              <button className={`mic-button ${audio.active ? 'mic-button--active' : ''}`} type="button" onClick={toggleMic} aria-pressed={audio.active || audio.starting} aria-label={audio.starting ? 'Microphone starting. Cancel.' : audio.active ? 'Microphone on. Turn off.' : 'Microphone off. Turn on.'} title={audio.starting ? 'Microphone starting. Cancel.' : audio.active ? 'Microphone on. Turn off.' : 'Microphone off. Turn on.'}>
-                {audio.active ? <MicOff size={20} aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}<span>{audio.starting ? 'Cancel mic' : audio.active ? 'Mic on' : 'Mic off'}</span>
+              <button className={`mic-button ${audio.active ? 'mic-button--active' : ''}`} type="button" onClick={toggleMic} disabled={PAGES_DEMO} aria-pressed={audio.active || audio.starting} aria-label={PAGES_DEMO ? 'Voice unavailable in browser demo' : audio.starting ? 'Microphone starting. Cancel.' : audio.active ? 'Microphone on. Turn off.' : 'Microphone off. Turn on.'} title={PAGES_DEMO ? 'Voice unavailable in browser demo' : audio.starting ? 'Microphone starting. Cancel.' : audio.active ? 'Microphone on. Turn off.' : 'Microphone off. Turn on.'}>
+                {audio.active ? <MicOff size={20} aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}<span>{PAGES_DEMO ? 'No voice' : audio.starting ? 'Cancel mic' : audio.active ? 'Mic on' : 'Mic off'}</span>
               </button>
               <button className="send-button" type="submit" disabled={!draft.trim() || connection !== 'connected' || status.state === 'working' || taskDispatchRef.current} aria-label="Send message"><Send size={22} aria-hidden="true" /></button>
             </form>
-            <p className="composer-caption"><AudioLines size={16} aria-hidden="true" /> Microphone and Stop are separate controls. Voice never confirms an action.</p>
+            <p className="composer-caption"><AudioLines size={16} aria-hidden="true" /> {PAGES_DEMO ? 'Text simulation only. Voice is unavailable; no microphone is opened.' : 'Microphone and Stop are separate controls. Voice never confirms an action.'}</p>
           </div>
         </section>
 
-        <aside className={`website-panel ${viewMode === 'website' ? 'mobile-visible' : ''}`} aria-label="Website session">
+        <aside className={`website-panel ${viewMode === 'website' ? 'mobile-visible' : ''}`} aria-label={PAGES_DEMO ? 'Fictional listing preview' : 'Website session'}>
           <div className="website-heading">
-            <div><p className="overline">BROWSER SESSION</p><h2><Globe2 size={22} aria-hidden="true" /> Website</h2></div>
-            {browser?.demo && <span className="demo-tag">Test environment</span>}
+            <div><p className="overline">{PAGES_DEMO ? 'STATIC FIXTURE' : 'BROWSER SESSION'}</p><h2><Globe2 size={22} aria-hidden="true" /> {PAGES_DEMO ? 'Preview' : 'Website'}</h2></div>
+            {(PAGES_DEMO || browser?.demo) && <span className="demo-tag">{PAGES_DEMO ? 'Browser simulation' : 'Test environment'}</span>}
           </div>
-          {browser ? (
+          {PAGES_DEMO ? <DemoFixturePreview offer={demoPreview} /> : browser ? (
             <>
               <div className="browser-frame">
                 <div className="browser-chrome"><span className="browser-dots" aria-hidden="true"><i /><i /><i /></span><span className="browser-address">{browserHost}</span></div>
@@ -649,7 +664,7 @@ function ApprovalReview({ approval, checked, setChecked, onConfirm, disabled = f
     leisure: LeisureCard,
   }[approval.offer.kind];
   const requestKind = approval.offer.kind === 'government' || approval.offer.kind === 'service' || approval.offer.kind === 'leisure';
-  const actionButtonLabel = requestKind
+  const actionButtonLabel = PAGES_DEMO ? approval.actionLabel : requestKind
     ? `${approval.actionLabel}${approval.offer.demo ? ' · test only; no real commitment' : ''}`
     : 'Confirm test booking';
   return <section className="approval-review" aria-labelledby={`approval-${approval.id}`}>
@@ -657,7 +672,7 @@ function ApprovalReview({ approval, checked, setChecked, onConfirm, disabled = f
     <p className="approval-provider">{approval.actionLabel} with <strong>{approval.site}</strong></p>
     <Card offer={approval.offer} disabled />
     <section className="disclosure-block" aria-labelledby={`sent-${approval.id}`}>
-      <h3 id={`sent-${approval.id}`}>Information that will be sent</h3>
+      <h3 id={`sent-${approval.id}`}>{PAGES_DEMO ? 'Details used in this browser simulation' : 'Information that will be sent'}</h3>
       {approval.transmittedFields.length > 0 ? <dl className="transmitted-fields">{approval.transmittedFields.map((field, index) => <div key={`${field.label}-${index}`}><dt>{field.label}</dt><dd>{field.value}</dd></div>)}</dl> : <p>No personal details are listed for this action.</p>}
     </section>
     <section className="disclosure-block" aria-labelledby={`consequences-${approval.id}`}>
@@ -675,7 +690,7 @@ function ResultCard({ result }: { result: ResultView }) {
   const requestReceived = result.outcome === 'request_received';
   const confirmed = result.outcome === 'booking_confirmed' || (!result.outcome && result.state === 'confirmed');
   const success = requestReceived || confirmed;
-  const heading = requestReceived ? 'REQUEST RECEIVED' : confirmed ? 'CONFIRMED' : 'RESULT UNCLEAR';
+  const heading = PAGES_DEMO && success ? (requestReceived ? 'SIMULATED REQUEST RECEIPT' : 'SIMULATED BOOKING') : requestReceived ? 'REQUEST RECEIVED' : confirmed ? 'CONFIRMED' : 'RESULT UNCLEAR';
   return <section className={`result-card ${success ? 'result-card--confirmed' : 'result-card--unclear'}`} role="status">
     {success ? <Check size={23} aria-hidden="true" /> : <CircleAlert size={23} aria-hidden="true" />}
     <div><p className="overline">{heading}</p><p>{result.text}</p>{result.reference && <p>Reference: {result.reference}</p>}{result.demo && <span className="demo-tag">{requestReceived ? 'Test environment · no real commitment' : 'Test environment · no real payment'}</span>}</div>

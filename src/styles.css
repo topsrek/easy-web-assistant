@@ -29,6 +29,8 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; background: #f5f4ef; }
+.pages-demo-banner { margin: 0; padding: 14px 24px; background: #e7f2ec; border-bottom: 1px solid #bed8ca; color: #204a40; font-size: 18px; line-height: 1.5; overflow-wrap: anywhere; }
+.mic-button:disabled { opacity: .65; cursor: not-allowed; }
 .topbar { min-height: 78px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; background: rgba(255, 254, 250, .94); border-bottom: 1px solid var(--line); position: relative; z-index: 3; }
 .brand { display: inline-flex; gap: 13px; align-items: center; color: var(--ink); text-decoration: none; font: 700 19px 'Segoe UI', sans-serif; letter-spacing: -.4px; }
 .brand-mark, .assistant-avatar { background: var(--green); color: #fff; display: inline-flex; align-items: center; justify-content: center; font: 800 21px 'Manrope', sans-serif; border-radius: 15px 15px 15px 5px; }
@@ -111,7 +113,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .browser-empty { flex: 1; min-height: 340px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 35px; color: #6b7772; text-align: center; }
 .browser-empty svg { color: #8ea39a; }
 .browser-empty p { max-width: 300px; margin: 0; font-size: 18px; line-height: 1.55; }
-.delete-profile-button { position: fixed; right: 18px; bottom: 16px; z-index: 4; min-height: 44px; padding: 0 12px; color: #754437; background: #fff8f2; border: 1px solid #e6c8b9; border-radius: 11px; cursor: pointer; font-size: 18px; opacity: .92; }
+.delete-profile-button { position: static; align-self: flex-end; margin: 8px 18px 16px auto; min-height: 44px; padding: 0 12px; color: #754437; background: #fff8f2; border: 1px solid #e6c8b9; border-radius: 11px; cursor: pointer; font-size: 18px; opacity: .92; }
 
 .approval-review, .result-card { max-width: 820px; margin: 24px auto; padding: 22px; border: 1px solid #dbdfd8; border-radius: 19px; background: #fbfcf8; box-shadow: 0 5px 20px #203b3010; }
 .approval-header { display: flex; gap: 13px; align-items: center; margin-bottom: 15px; }
@@ -207,7 +209,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
   .approval-review, .result-card { padding: 16px; margin: 18px 0; }
   .approval-header h2 { font-size: 20px; }
   .transmitted-fields div { grid-template-columns: 1fr; gap: 3px; }
-  .delete-profile-button { left: 8px; right: auto; bottom: 5px; min-height: 44px; font-size: 18px; }
+  .delete-profile-button { align-self: stretch; margin: 8px 8px 12px; min-height: 44px; font-size: 18px; }
   .browser-meta, .browser-note { font-size: 18px; }
 }
 

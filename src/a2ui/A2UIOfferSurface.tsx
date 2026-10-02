@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { A2uiSurface } from '@a2ui/react/v0_9';
+import type { ReactComponentImplementation } from '@a2ui/react/v0_9';
 import { MessageProcessor } from '@a2ui/web_core/v0_9';
+import type { SurfaceModel } from '@a2ui/web_core/v0_9';
 import type { Offer } from '../../shared/schema';
 import { everydayCatalog } from './catalog';
 import { validateA2UIMessages } from './validation';
@@ -14,7 +16,7 @@ export type A2UIOfferSurfaceProps = {
   onSelect(offerId: string, version: number, kind: Offer['kind']): void;
 };
 
-type ActiveSurface = ReturnType<MessageProcessor['getSurfaces']> extends ReadonlyMap<string, infer T> ? T : never;
+type ActiveSurface = SurfaceModel<ReactComponentImplementation>;
 
 export function A2UIOfferSurface({ messages, version, currentVersion, disabled = false, onSelect }: A2UIOfferSurfaceProps) {
   const [surfaces, setSurfaces] = useState<ActiveSurface[]>([]);
@@ -35,7 +37,7 @@ export function A2UIOfferSurface({ messages, version, currentVersion, disabled =
       return;
     }
 
-    const processor = new MessageProcessor([everydayCatalog], (action) => {
+    const processor = new MessageProcessor<ReactComponentImplementation>([everydayCatalog], (action) => {
       const current = liveProps.current;
       if (current.disabled || current.version !== current.currentVersion || action.name !== 'select_offer') return;
       const key = `${action.surfaceId}\u0000${action.sourceComponentId}`;

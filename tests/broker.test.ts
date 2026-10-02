@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ApprovalGate } from '../server/approval.js';
+import { BrowserSession } from '../server/browser.js';
 import { ToolBroker } from '../server/broker.js';
 import { emptyProfile, type Offer } from '../shared/schema.js';
 
@@ -11,19 +12,20 @@ const offer: Offer = {
 };
 const origin = 'http://127.0.0.1:3001';
 const create = () => {
-  const browser = {
-    fixtureOrigin: origin, sessionId: 'session-1', ownsSession: (id: string) => id === 'session-1',
-    readOffers: vi.fn(async () => [offer]), submitPrepared: vi.fn(), checkResult: vi.fn(async () => true),
-    checkCurrentResult: vi.fn(async () => null),
-  };
+  const browser = Object.assign(new BrowserSession(origin, 'session-1'), {
+    readOffers: vi.fn<BrowserSession['readOffers']>(async () => [offer]),
+    submitPrepared: vi.fn<BrowserSession['submitPrepared']>(async () => ({})),
+    checkResult: vi.fn<BrowserSession['checkResult']>(async () => true),
+    checkCurrentResult: vi.fn<BrowserSession['checkCurrentResult']>(async () => null),
+  });
   const gate = new ApprovalGate();
-  return { browser, gate, broker: new ToolBroker(browser as never, gate) };
+  return { browser, gate, broker: new ToolBroker(browser, gate) };
 };
 
 describe('ToolBroker', () => {
   it('prepares a narrow binding and requires an exact in-flight one-use capability', async () => {
     const { broker, browser } = create();
-    let authorize: (sessionId: string, offerId: string, inputs: Record<string, string>, capability?: string) => boolean;
+    let authorize: ToolBroker['authorizeFixtureSubmission'];
     browser.submitPrepared.mockImplementation(async (binding, capability) => {
       authorize = (broker as ToolBroker).authorizeFixtureSubmission.bind(broker);
       expect(authorize('session-1', 'event-jazz', { 'Full name': 'Ada', Email: 'ada@example.test' }, 'forged', binding.action)).toBe(false);
@@ -66,7 +68,8 @@ describe('ToolBroker', () => {
 
   it('locks concurrent mutations and verifies provider state after a post-submit stop', async () => {
     const { broker, browser } = create();
-    let finish!: (value: { reference: string }) => void;
+    type Receipt = Awaited<ReturnType<BrowserSession['submitPrepared']>>;
+    let finish!: (value: Receipt) => void;
     browser.submitPrepared.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
     const prepared = await broker.prepare(offer, 1, emptyProfile);
     const first = broker.submit(prepared.approval.token, prepared.binding);

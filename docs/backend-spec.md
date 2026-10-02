@@ -10,14 +10,14 @@ User authorized resuming and correction messages to project chats via coordinato
 
 | Assignment | Thread ID | Status |
 | --- | --- | --- |
-| Controller/shared/package/demo | 01a0fe68-c465-73c2-80cc-5b3eafd0b2c2 | Six-kind integration, actual Zod install and Astra routing/late-result/source fixes in source; integrated regressions pending QA |
-| Events | 01a0fe68-de72-7242-a9f5-d3183af449e0 | 13/13 targeted tests passed |
-| Journeys | 01a0fe69-16a6-75c0-bcf6-a517c29fe2ca | 10/10 targeted tests passed |
-| Appointments | 01a0fe69-4354-70c1-a2df-f5e34fa86186 | 34/34 targeted tests passed after source-test correction |
-| Browser/broker/approval | 01a0fe8b-9d0d-7cc1-ad1b-256e46b8581d | 25 targeted tests including independent approval regressions passed; opt-in Edge channel added |
-| AI/voice | 01a0fe8b-f6cb-7b83-8a6d-594f24687a3b | Temporary region change reverted; matching configuration mock rerun passed 14/14, no actual API calls |
-| QA/acceptance | 01a0fe8c-b706-7193-a7e7-e0e35dfb0bfa | Current suite passed 15 files/142 tests; standalone Vite bundle passed; typecheck/full package build/E2E pending |
-| Local documentation | 01a0fe8c-f09f-79f1-890a-81cd85db0cdd | Local delivery docs and safe Git initialization complete; acceptance updates in progress |
+| Controller/shared/package/demo | internal owner chat | Six-kind integration, actual Zod install and Astra routing/late-result/source fixes in source; integrated regressions pending QA |
+| Events | internal owner chat | 13/13 targeted tests passed |
+| Journeys | internal owner chat | 10/10 targeted tests passed |
+| Appointments | internal owner chat | 34/34 targeted tests passed after source-test correction |
+| Browser/broker/approval | internal owner chat | 25 targeted tests including independent approval regressions passed; opt-in Edge channel added |
+| AI/voice | internal owner chat | Temporary region change reverted; matching configuration mock rerun passed 14/14, no actual API calls |
+| QA/acceptance | internal owner chat | Current suite passed 15 files/142 tests; standalone Vite bundle passed; typecheck/full package build/E2E pending |
+| Local documentation | internal owner chat | Local delivery docs and safe Git initialization complete; acceptance updates in progress |
 
 Earlier attempts for the last four chats failed model metadata validation or app reconnect/project lookup; fresh creation with explicit Luna/high succeeded. The app sidebar inventory may omit known chats; read/wait by exact ID is required before assuming a chat missing.
 
@@ -69,6 +69,28 @@ QA then executed the unchanged independent `tests/review/astra-overall.test.ts`:
 
 Latest completed QA suite supersedes earlier counts: `npm test -- --maxWorkers=1` exited 0, 15 files/142 tests passed in 7.27 seconds, including the additional controller regressions. Real HTTP integration currently proves the fixed state route's protected negative JSON response, not a positive authorized receipt; the positive six-flow browser runs remain required. `vite build` run separately without TypeScript exited 0 (2,147 modules, 604.54 kB JS/172.80 kB gzip). This is a bundler pass, not a full `npm run build` or typecheck pass. QA is preparing Preview plus deterministic demo backend and Edge visual/functional acceptance because the dev-server module startup is unstable. A read-only check found no leftover native TypeScript process; that suspected cause is unconfirmed.
 
-QA then found port 5173 owned by a Vite process from the separate `D:\DEV\machine-literacy` project. That process must not be stopped or reused for this project's acceptance. QA is assigned free explicit test ports with a test-only launcher using the existing `createAppServer({port, origin, settings})` API and a matching Preview proxy/baseURL. The UI uses `location.host` for WebSocket, so no product frontend change is needed for this isolation. This observation does not prove the cause of all earlier module timeouts.
+QA then found port 5173 owned by a Vite process from the separate `a separate local project` project. That process must not be stopped or reused for this project's acceptance. QA is assigned free explicit test ports with a test-only launcher using the existing `createAppServer({port, origin, settings})` API and a matching Preview proxy/baseURL. The UI uses `location.host` for WebSocket, so no product frontend change is needed for this isolation. This observation does not prove the cause of all earlier module timeouts.
 
 Root reserved only new `server/automation/**`, `tests/automation/**`, and `docs/website-automation-spec.md` for the newly user-requested automation audit/design chat. Existing browser/broker/AI/session/providers/shared/package ownership remains unchanged. Integrating that design requires concrete coordinated owner patches; no real website mutation, cloud setup change, or model success is implied by the reservation. Any reported TypeScript diagnostics require the actual error artifact and a serialized QA check rather than inference from prior hangs.
+
+## Resumed type corrections after publication snapshot
+
+Coordinator resumed scoped Backend fixes after the initial public-main commit `c01d36ddd1d2628427ad0966b40c2cada97053d2`. Release remains the only Git owner; QA is now the only test/compiler/build runner. Existing controller package/shared files must not be changed for Pages yet, and new website-automation controller integration remains on hold until the Pages publication checkpoint. These limits do not block the narrowly assigned corrections below.
+
+The post-Zod QA typecheck completed with exit 1 in 7.285 seconds; it did not hang. Its output has 26 diagnostic lines, allocated as follows:
+
+| File | Diagnostics | Existing owner / scoped correction |
+| --- | --- | --- |
+| server/index.ts | 5 | Controller: capture/narrow one address value; explicitly validate the session string; handle RawData byte lengths without weakening protocol limits |
+| server/providers/events.ts | 1 | Events: explicitly narrow optional string in known-value predicate |
+| tests/broker.test.ts | 14 | Broker: current five-argument authorization type and accurately typed receipt/recovery mocks; preserve every behavioral assertion |
+| tests/services.test.ts | 5 | Existing Service worker: schema-compliant completeness in test details, with uncertainty preserved |
+| src/a2ui/A2UIOfferSurface.tsx | 1 | Frontend manager/owner: React-specific surface/component typing |
+
+All four Backend file owners have received the scoped resume and exact diagnostics; the Expansion manager is informed about its Service worker. No typecheck success is claimed until QA reruns the integrated corrected source. The additional onboarding Controller suite passed 4/4 in QA. Preview profile and mobile smokes each passed 1/1; the Event E2E attempt was interrupted without completing, so the six full category flows still require evidence.
+
+The four Backend type-correction checkpoints are now saved and source-reviewed. Controller explicitly narrows address/session values and normalizes RawData with the binary/128 KiB checks retained. Events uses a string guard before trimming. Broker test mocks use production signatures with Object.assign retaining Vitest mock members; all capability/invocation assertions remain. Service details have complete/partial/unknown values aligned to the fictional source. QA and coordinator have been notified that the 25 Backend diagnostics are ready for integrated verification with the one frontend diagnosis. No worker ran tests or altered package/shared/Pages/automation integration for this checkpoint.
+
+The next actual QA typecheck started normally and completed in 7.384 seconds. The preceding 26 diagnostics are absent; it reported only six new mutable readyState literal-type errors in `src/pages-demo/transport.ts` (Pages owner). The following serial scoped run passed all 23 tests across broker, service, and controller files. Overall typecheck remained failing pending that Pages correction and a new integrated QA run. Coordinator authorized a bounded manager recovery only if QA could not legally start checks and confirmed a free window; that exception was not needed while QA's normal commands executed. Manager started no parallel checks.
+
+Pages owner then saved `readyState: number` in the separate transport. QA's subsequent process-local VITE_PAGES_DEMO build exited 0 (2,151 modules), and its Preview on port 4173 served `/easy-web-assistant/` with HTTP 200. The following full `npm run typecheck` completed in 11.483 seconds with exit 0 and no diagnostics. The Backend type-correction handoff is therefore verified by the full compiler run and the 23/23 scoped behavioral tests. These independently completed stages do not imply a fresh full-package-build command or six-flow browser acceptance. The isolated Edge check of the new Pages build hung and ended without a screenshot; new Pages desktop/mobile visual acceptance remains open.

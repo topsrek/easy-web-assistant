@@ -1,0 +1,121 @@
+.pages-demo-preview {
+  overflow: hidden;
+  border: 1px solid #d8e1d9;
+  border-radius: 16px;
+  background: #fffefa;
+  color: #243a35;
+}
+
+.pages-demo-preview__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8e1;
+  background: #f3f5ee;
+  color: #456158;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.pages-demo-preview__dots {
+  color: #b7a77d;
+  letter-spacing: 2px;
+  font-size: 11px;
+}
+
+.pages-demo-preview__listing {
+  padding: 20px;
+}
+
+.pages-demo-preview__listing img {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #edf0e9;
+}
+
+.pages-demo-preview__provider {
+  color: #52675e;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.pages-demo-preview__listing h3 {
+  margin: 6px 0 8px;
+  font-size: 21px;
+}
+
+.pages-demo-preview__listing > p:not(.pages-demo-preview__provider) {
+  color: #56635d;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.pages-demo-preview__listing > strong {
+  display: block;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.pages-demo-preview__listing,
+.pages-demo-preview__listing dl,
+.pages-demo-preview__listing dl div,
+.pages-demo-preview__listing dt,
+.pages-demo-preview__listing dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pages-demo-preview__listing dl {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+}
+
+.pages-demo-preview__listing dl div {
+  display: grid;
+  grid-template-columns: minmax(90px, .7fr) 1.3fr;
+  gap: 12px;
+}
+
+.pages-demo-preview__listing dt {
+  color: #5c6b63;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.pages-demo-preview__listing dd {
+  margin: 0;
+  font-size: 18px;
+}
+
+.pages-demo-preview__empty,
+.pages-demo-preview__note {
+  padding: 18px 20px;
+  color: #56635d;
+}
+
+.pages-demo-preview__empty {
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.pages-demo-preview__note {
+  margin: 0;
+  border-top: 1px solid #e2e8e1;
+  background: #f7f8f3;
+  font-size: 18px;
+}
+
+@media (max-width: 640px) {
+  .pages-demo-preview__listing dl div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
