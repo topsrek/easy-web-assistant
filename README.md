@@ -1,16 +1,16 @@
 # easy-web-assistant
 
-Ein lokaler Sprach- und Textassistent, der Informationen zu Veranstaltungen, Reisen und Arztterminen in einer zugänglichen Chatoberfläche aufbereiten soll. Dieses Projekt folgt aktuell dem [PRD V0.3](easy-web-assistant-prd.md). Die Erweiterungen Behörden, Dienstleistungen und Freizeit sind dort beschrieben; ihre Abnahme ist separat erforderlich.
+An assistant for voice and text that aims to present information about events, journeys, and medical appointments in an accessible chat interface. The project currently follows [PRD V0.3](easy-web-assistant-prd.md). It also describes government appointments, services, and leisure activities; those additions require separate acceptance. The source code is public on [GitHub](https://github.com/topsrek/easy-web-assistant).
 
-## Aktueller Lieferstand
+## Current status
 
-Oberfläche, lokale Profilverwaltung, A2UI-Karten, kontrollierte fiktionale Testangebote sowie die Servermodule und Modellkonfiguration sind vorhanden. Die jüngste QA-Unit- und Integrationssuite bestand mit **142/142 Tests in 15 Dateien** (`npm test -- --maxWorkers=1`). Ein eigenständiger Vite-Build bündelte **2.147 Module** erfolgreich in 1,98 Sekunden; das JavaScript-Bundle beträgt 605 kB (173 kB gzip). Dieser Vite-Lauf umgeht den weiterhin nicht bestätigten Typecheck und ist kein erfolgreicher `npm run build`-Nachweis. Ein begrenzter Profil-Smoke im gebauten Preview bestand mit **1/1** und prüfte Setup, Speichern, Neuladen, Bearbeiten, Löschen sowie Session-only-Fallback. Weitere Browser- und Fachabläufe sowie die Ende-zu-Ende-Abnahme bleiben offen. Für die Erweiterungen aus PRD V0.3 gibt es Entwurfsfälle; ihre Integration ist noch nicht vollständig.
+The codebase contains the interface, local profile storage, A2UI cards, controlled fictional test offers, server modules, and model configuration. At an earlier QA checkpoint, **142/142 tests across 15 files** passed (`npm test -- --maxWorkers=1`); a standalone Vite build bundled **2,147 modules** in 1.98 seconds. These results apply to that earlier state and do not establish a complete build. A limited profile smoke test against the built preview passed **1/1**, covering setup, save, reload, edit, delete, and the session-only fallback. In the latest QA update, a controller smoke test passed **4/4**, and a mobile preview smoke test passed **1/1**. TypeScript diagnostics remain, and the responsible implementers are addressing them. A successful `npm run build` or full end-to-end acceptance has not been established. Implementation and acceptance of the PRD V0.3 additions are still incomplete.
 
-Es gibt noch keine geprüfte Integration mit einer bestehenden Anbieterwebsite. Die Demo verwendet ausschließlich klar gekennzeichnete fiktionale Testangebote und darf nicht als reale Verfügbarkeit, Buchung oder Zahlung verstanden werden. Einen detaillierten Überblick enthält [docs/integration-limits.md](docs/integration-limits.md); die Windows-Anleitung steht in [docs/local-start.md](docs/local-start.md).
+No integration with an existing provider website has been verified. The demo uses clearly labeled fictional test offers only; it does not show real availability, create real bookings, or take payments. See [docs/integration-limits.md](docs/integration-limits.md) for details and [docs/local-start.md](docs/local-start.md) for Windows setup.
 
-## Voraussetzungen und Start
+## Requirements and startup
 
-Vorgesehene lokale Umgebung: Windows, Node.js 24 und npm 11. In der zuletzt geprüften Umgebung waren Node `v24.19.0` und npm `11.17.0` installiert. Der vorgesehene Entwicklungsstart lautet:
+The intended local environment is Windows, Node.js 24, and npm 11. The last inspected environment had Node `v24.19.0` and npm `11.17.0`. The intended development startup is:
 
 ```powershell
 Set-Location D:\DEV\easy-web-assistant
@@ -18,18 +18,18 @@ npm ci
 npm run dev
 ```
 
-`dev` startet Vite und den lokalen Node-Server. Die Startfähigkeit ist derzeit nicht bestätigt; bitte beachte den aktuellen Lieferstand und die [Startanleitung](docs/local-start.md). Es gibt keine Anmeldung und für die fiktionale Demo wird kein API-Schlüssel benötigt. Es findet kein Deployment statt.
+`dev` starts Vite and the local Node server. Successful startup has not yet been confirmed; see the current status and [startup guide](docs/local-start.md). There is no login, and the fictional demo does not require an API key. The app is not deployed.
 
-## Datenschutz und Freigaben
+## Privacy and approvals
 
-Das Profil ist für versionierte Speicherung im LocalStorage des jeweiligen Browsers vorgesehen. Profilangaben werden für einen Auftrag nach Anwendungsfall eingegrenzt; Modellverarbeitung und Übertragung an eine Zielwebsite sind unterschiedliche Schritte. Vor einer zustandsändernden Aktion soll eine Prüfübersicht den Anbieter, die konkreten übermittelten Felder, Kosten und unbekannten Kosten, Folgen und die ausdrücklich zu bestätigende Aktion nennen. Die Demo nutzt künstliche Angebots- und Personendaten.
+The profile is intended to be stored in a versioned format in the current browser's LocalStorage. Profile fields are limited to what each task needs; model processing and data transfer to a target website are separate steps. Before any action that changes state, the review should identify the provider, exact fields and values to be sent, known and unknown costs, consequences, and the action requiring explicit confirmation. The demo uses synthetic offer and personal data.
 
-## Modellrollen
+## Model roles
 
-Die lokale Konfiguration führt Gemini für Gespräch und Aufgabensteuerung, Gemma für Websiteinterpretation und Informationsaufbereitung sowie ein separat konfiguriertes Gemini Live-Modell für Sprache. Konfigurationswerte bedeuten nicht, dass Zugang, Modellantworten oder Audioverarbeitung erfolgreich geprüft wurden. Details stehen in [docs/google-cloud-setup.md](docs/google-cloud-setup.md).
+The local configuration assigns Gemini to conversation and task control, Gemma to website interpretation and information structuring, and a separately configured Gemini Live model to voice. Configuration values do not prove that access, model responses, or audio processing have been verified. See [docs/google-cloud-setup.md](docs/google-cloud-setup.md) for details.
 
-Die Zuordnung des Google-Cloud-/GDG-Guthabens und der genaue API-Zugang sind noch offen. Eine automatische Umstellung auf Vertex wurde zurückgenommen; der Demo-Modus bleibt aktiv und unbestätigte lokale Keys bleiben deaktiviert.
+The Google Cloud/GDG credit allocation and exact API access route remain unresolved. An automatic switch to Vertex was reverted; demo mode remains active, and unverified local keys remain disabled. Model roles are configuration only, not a confirmed live connection.
 
-## Entwicklung
+## Development
 
-Die verfügbaren npm-Skripte sind in `package.json` definiert: `dev`, `start`, `test`, `test:e2e`, `typecheck` und `build`. Umfassende Projektprüfungen einschließlich Typecheck und Build gehören laut Projektvertrag ausschließlich zu QA. Unit- und Integrationstests sowie der isolierte Vite-Build sind erfolgreich; Typecheck, vollständiger npm-Build und Browserabnahme bleiben offen. Siehe den aktuellen [QA-Prüfstatus](docs/acceptance.md).
+The available npm scripts are defined in `package.json`: `dev`, `start`, `test`, `test:e2e`, `typecheck`, and `build`. Under the project contract, QA owns comprehensive project checks, including typecheck and build. The earlier test/Vite results and the latest limited controller/mobile smoke tests are separate pieces of evidence. TypeScript diagnostics remain; the full build and browser acceptance are still open. See the [QA status](docs/acceptance.md), which the QA owner will update after the current fixes.
