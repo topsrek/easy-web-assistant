@@ -1,0 +1,104 @@
+*** Begin Patch
+*** Update File: server/ai.ts
+@@
+ import { config, type AppConfig } from './config.js';
++import { GemmaWebsitePlanner } from './automation/planner.js';
+@@
+   status() { return assistantAIStatus(this.settings); }
++
++  websitePlanner() {
++    const client = this.client;
++    if (!client) throw new Error('Live website planning needs a configured model and DEMO_MODE=false.');
++    return new GemmaWebsitePlanner(this.settings, () => client);
++  }
+*** Update File: server/session.ts
+@@
+ import { demoOffers, inferKind } from './demo.js';
++import { PublicWebsiteBrowser } from './automation/browser.js';
++import { sfjazzPolicy } from './automation/policy.js';
++import { searchWebsite } from './automation/search.js';
+@@
+   private readonly assistant: AssistantAI;
++  private website?: PublicWebsiteBrowser;
+@@
+-    // Website adapters are controlled fixtures even when a model is configured.
+-    this.emit({ type: 'ready', mode: 'demo', voiceAvailable: this.assistant.status().available });
++    this.emit({ type: 'ready', mode: this.settings.demoMode ? 'demo' : 'live', voiceAvailable: this.assistant.status().available });
+@@
+       this.currentKind = kind;
++      if (!this.settings.demoMode) {
++        await this.runWebsiteTask(kind, text, taskVersion);
++        return;
++      }
+       const projectedProfile = neededProfileFor(kind, profile, { homeVisit: false });
+@@
+   private async select(offerId: string, suppliedVersion: number, suppliedProfile?: Profile) {
+@@
+     if (!offer || suppliedVersion !== this.version || this.inFlight) {
+       return this.emit({ type: 'error', message: 'That option is no longer current. Please search again.' });
+     }
++    if (!offer.demo) {
++      this.emit({ type: 'error', message: 'Use the original source link to read these details. This website integration reads public information only; booking is not supported and no personal details were sent.' });
++      this.status('Public source read. No booking or request was submitted.', 'complete');
++      return;
++    }
+@@
+   private invalidate(text: string, tell = true) {
++    const oldWebsite = this.website;
++    this.website = undefined;
++    void oldWebsite?.close().catch(() => undefined);
+@@
+   private async stop() {
++    const oldWebsite = this.website;
++    this.website = undefined;
++    void oldWebsite?.close().catch(() => undefined);
+@@
+   private async reset() {
++    const oldWebsite = this.website;
++    this.website = undefined;
++    void oldWebsite?.close().catch(() => undefined);
+@@
+   private async broadcastBrowser(expectedVersion = this.version) {
+     try {
+-      const snapshot = await this.browser.snapshot();
++      const snapshot = this.settings.demoMode ? await this.browser.snapshot() : await this.website?.snapshot();
+@@
+   async close() {
+@@
+     this.alive = false;
++    const oldWebsite = this.website;
++    this.website = undefined;
++    await oldWebsite?.close().catch(() => undefined);
+@@
+-  private async select(offerId: string, suppliedVersion: number, suppliedProfile?: Profile) {
++  private async runWebsiteTask(kind: TaskKind, text: string, taskVersion: number) {
++    if (kind !== 'event') {
++      this.message('assistant', 'The existing website integration currently reads SFJAZZ events. Other categories are available in the explicitly labelled demo mode; no live provider is configured for this request.');
++      this.status('No existing website adapter for this category.', 'complete');
++      return;
++    }
++    this.message('assistant', 'I am reading the public SFJAZZ website. Ticket availability, your requested conditions and final costs need checking. This integration does not make bookings or send personal details.');
++    this.status('Reading the public calendar and relevant event details…', 'working');
++    const website = new PublicWebsiteBrowser(sfjazzPolicy);
++    this.website = website;
++    const result = await searchWebsite(website, this.assistant.websitePlanner(), sfjazzPolicy, kind, text,
++      () => !this.alive || taskVersion !== this.version || this.website !== website);
++    if (!this.alive || taskVersion !== this.version) return;
++    for (const offer of result.offers) {
++      this.offers.set(offer.id, offer);
++      const id = `website-offer-${offer.id}-${taskVersion}`;
++      const messages = buildOfferSurface(offer, taskVersion, id);
++      // The original source remains linked in the card. No selection/approval for read-only providers.
++      messages.push({ version: 'v0.9', updateDataModel: { surfaceId: id, path: '/', value: { disabled: true } } });
++      this.emit({ type: 'cards', id, messages, version: taskVersion });
++    }
++    this.message('assistant', result.offers.length
++      ? await this.assistant.summarizeObservation(result.offers)
++      : 'I could not verify a relevant event within the public pages I read. I have not substituted fictional offers or relaxed your conditions.');
++    if (!this.alive || taskVersion !== this.version) return;
++    await this.broadcastBrowser(taskVersion);
++    this.status(result.offers.length ? 'Public source information found; use the original source to check conditions.' : 'No verified public website option found.', 'complete');
++  }
++
++  private async select(offerId: string, suppliedVersion: number, suppliedProfile?: Profile) {
+*** End Patch

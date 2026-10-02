@@ -1,0 +1,6 @@
+.a2ui-surfaces { display: grid; gap: 1rem; width: 100%; }
+.a2ui-surfaces[aria-disabled="true"] { opacity: .72; }
+.a2ui-message { padding: 1rem; border-radius: .75rem; background: #fff4e8; color: #34291f; font-size: 1.125rem; }
+.a2ui-form-field { display: grid; gap: .5rem; font-size: 1.125rem; }
+.a2ui-form-field input, .a2ui-form-field select { min-height: 3.5rem; padding: .65rem .85rem; border: 2px solid #62574d; border-radius: .6rem; background: white; color: #241f1a; font: inherit; }
+.a2ui-form-field :focus-visible { outline: 3px solid #176c5b; outline-offset: 2px; }

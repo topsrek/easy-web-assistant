@@ -1,0 +1,52 @@
+# Parallel expansion specification
+
+Date: 2 October 2026. Owner: expansion manager. Human authorization in coordinator chat `01a0fe4c-6b44-78e3-aa32-d48601a6179a`: implement government appointments, services and leisure now alongside the existing MVP; resume the other project chats. PRD V0.3 incorporates this scope in sections 3.5–3.7. No completed integration or real providers are claimed. English product UI; local controlled fictional websites only.
+
+## Ownership and contract decision
+
+The three visible GPT-6 Luna/high chats own exactly one provider module and one test file each. No internal subagents or duplicate writers. Backend manager `01a0fe66-338a-7c83-ab59-8f2853af7e81` owns docs/contracts.md and delegates shared/schema.ts, server/index.ts, server/session.ts, server/demo.ts and package files to its exclusive controller worker. Browser/broker and AI worker changes stay with their existing owners. Frontend manager `01a0fe65-1c95-7ce0-a12e-3e27d845ca11` delegates src/** and public/catalogs/** to its existing workers. Cloud configuration/env remains with the cloud manager.
+
+Confirmed canonical TaskKinds: `government`, `service`, `leisure`. Backend manager published these in docs/contracts.md V0.3 extension, with the same Provider interface, fixture routes, fields and cards below. Existing owners coordinate enum, inference, controller registry, fixtures, profile projection, browser allowlist, broker action identity and A2UI mapping. Workers must not edit shared files, widen types through casts or independently invent subtypes. Implement provider normalization/tests now; transparently document temporarily missing shared enum support until controller publication, then run targeted checks. Canonical broker actions are `test_appointment_request`, `test_service_request`, `test_enrollment_request`; verified result outcome is `request_received`, which does not claim a booked appointment, engagement or enrollment. Backend manager delegated integration to existing owners.
+
+Provider contract remains `Provider` from shared/schema.ts: kind, search(reader,text), requiredFields, actionLabel, consequences. Search only reads and interprets verified offers. It never submits, books, authorizes or finalizes. Exports: governmentProvider/normalizeGovernmentOffer; serviceProvider/normalizeServiceOffer; leisureProvider/normalizeLeisureOffer. Proposed fixture source paths: /fixture/government, /fixture/service, /fixture/leisure on one validated loopback origin. No real availability, qualification, law or payment claims. Demo data is fictional and clearly labelled; fixtures must contain meaningful category-specific source facts, not merely generic appointment/event data relabelled.
+
+## Common information and controls
+
+- Preserve supplied facts, descriptions, distinct conditions, original source links, observedAt and every distinct provider image. Missing source facts become explicit Unknown with unknown/partial completeness. Do not treat a read of part of a source as complete.
+- Unknown charges stay unknown, never zero. A known component is not a verified total. Preserve unknownCosts and add missing fee/total uncertainty; never calculate a total from incomplete components. Display crucial limitations visibly.
+- Search constraints must be matched against verified source fields or the fixed-demo limitation must be explicit. A requested place/date/access need cannot silently become an alleged verified match. Reject wrong kind, unsafe/external sources and inconsistent origins. No mutation of input offers.
+- Data minimization: provider requiredFields are proposed minimum fictional form requirements, not real-world mandates. Controller projects again and discloses exact transmitted fields and destination before release. government: fullName/email; service: fullName/email/phone (street/city/postalCode only for a source-verified home visit); leisure: fullName/email. Do not collect identity documents, credentials, sensitive legal/medical data or whole profiles by default.
+- Explicit current Controller/Broker approval is required for every final request/application/enrollment/booking. Binding includes exact action, website, offer, fields, costs, version and expiry; single use. No spoken yes. Changing profile/offer/inputs or Stop invalidates approval. Never blindly repeat an unclear submission.
+- Prepared means a reviewed proposed action; Submitted means a request was sent; Confirmed requires evidence of the precise outcome. A confirmed request receipt does not establish a confirmed appointment, service engagement or course enrollment. Result unclear remains distinct. Controller/broker must disclose request versus binding booking in approval and result text.
+
+## Government appointments
+
+Owned files: server/providers/government.ts and tests/government.test.ts. A fictional Test Civic Office demonstrates an appointment request, with explicit authority/department, purpose, place/address, appointment format, date/time/year/time zone, duration, access, required documents, prerequisites, sequence of steps, known fees, unknown charges, cancellation/change rules, application versus appointment state and confirmation evidence. Documents and requirements may only come from the supplied fictional source. Unknown requirements stay unknown; no legal advice or invented real administrative rules. Proposed actionLabel: Submit test appointment request; consequences explicitly state it is neither a real application nor a confirmed real appointment.
+
+## Services
+
+Owned files: server/providers/services.ts and tests/services.test.ts. A fictional Test Home Services provider demonstrates repair, household help or a tradesperson request. Preserve service scope, provider identity, service area, appointment window/time zone, visit/location requirements, qualification/availability as supplied or unknown, quote basis, labour/call-out/travel/materials/other charges, incomplete total, cancellation conditions and exact requested data. A request or quote receipt is not a binding engagement or confirmed visit. No real provider qualifications/availability claims. Proposed actionLabel: Submit test service request; explain that no real contractor is engaged.
+
+## Leisure
+
+Owned files: server/providers/leisure.ts and tests/leisure.test.ts. A fictional Test Community Centre demonstrates courses, exhibitions and club activities. Reuse event provider patterns read-only where useful; keep this separate visible assignment. Preserve category, organizer, venue/address, one-off versus recurring/multiple sessions with complete schedule/time zone, participation prerequisites, capacity/availability, cost and fees/materials, membership requirement, accessibility/access conditions, cancellation/transfer and enrollment versus request outcome. Material/membership costs remain unknown unless verified; no invented real eligibility. Proposed actionLabel: Submit test enrollment request; confirmation must say exactly whether the request or participation is confirmed.
+
+## Validation and acceptance
+
+Each provider tests preservation of distinct facts/images/conditions, explicit missing mandatory data, unknown fees/partial totals, wrong kind/source and mixed origin rejection, fixed-demo matching limitations, minimal declared fields, action semantics and absence of finalizer capabilities. Use independent fictional input fixtures inside the owned test file until controller adds the website fixture. Run targeted provider tests only; comprehensive typecheck/build/E2E belongs solely to Backend-QA `01a0fe8c-b706-7193-a7e7-e0e35dfb0bfa` via docs/qa-check-lock.md because concurrent Windows checks previously failed with ENOMEM.
+
+Integration acceptance needs all six task kinds through the same chat, category-specific cards/start examples and validated A2UI catalog, unique surface IDs, controller registry and fixture browser policy, appropriate disclosure, stale/double/Stop/unclear checks and verified category-specific request outcomes. Existing MVP build/UI/Live-audio acceptance is still incomplete. Passing pure provider tests does not establish browser integration, real websites or whole-app readiness.
+
+## Dispatch and evidence
+
+All three creations succeeded with explicit model `gpt-6-luna` and thinking `high`, local project `ed9c8538-f21f-4d11-bbc7-2a00c3ca999d`. Backend/frontend managers received the specification and integration request. Backend confirmed the canonical representation and published docs/contracts.md V0.3 extension; all three workers received this update. Implementation verification remains pending. No real provider integration exists for these expansion categories.
+
+| Assignment | Visible thread ID | Exclusive files | Initial status |
+| --- | --- | --- | --- |
+| Government appointments | `01a0fe8f-20dc-79f2-9444-bb10f4ca2e96` | server/providers/government.ts; tests/government.test.ts | Active/inProgress verified via wait_threads; reading contracts; provider checks pending |
+| Services | `01a0fe8f-6e04-7c51-a25c-4e19cb9a2a69` | server/providers/services.ts; tests/services.test.ts | Active/inProgress verified via wait_threads; reading contracts; provider checks pending |
+| Leisure | `01a0fe8f-8953-7bf2-95d0-3b6d406a34f2` | server/providers/leisure.ts; tests/leisure.test.ts | Active/inProgress verified via wait_threads; reading contracts; provider checks pending |
+
+Proposed UI mappings: GovernmentCard, ServiceCard, LeisureCard. Proposed English start examples: 'Find a test civic office appointment'; 'Request a test repair service'; 'Find a test community course'. These must be interpreted as their corresponding new kinds and show fixed fictional-source limitations. Frontend uses server actionLabel/consequences and exact result text without inventing a confirmed booking. Until source fixtures are published, requests for arbitrary real locations or dates cannot assert matching availability.
+
+Host recovery coordination: coordinator reported default shell setup-refresh failures before process start. All three provider workers received the per-command recovery guidance: use exec_command require_escalated with a concrete project-only read or targeted-test justification when necessary, subject to normal approval review. This is not blanket access or a global-check authorization. All three resumed turns were verified active via wait_threads; the service worker explicitly began its targeted-check recovery. A failed shell start does not constitute a completed test or implementation acceptance.

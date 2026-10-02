@@ -1,0 +1,153 @@
+*** Begin Patch
+*** Update File: src/a2ui/catalog.tsx
+@@
+-import type { ReactElement } from 'react';
+-import { CommonSchemas, Catalog } from '@a2ui/web_core/v0_9';
++import type { FC, ReactElement } from 'react';
++import { CommonSchemas, Catalog } from '@a2ui/web_core/v0_9';
++import type { ComponentApi, ResolveA2uiProps } from '@a2ui/web_core/v0_9';
+ import { createComponentImplementation } from '@a2ui/react/v0_9';
++import type { ReactA2uiComponentProps, ReactComponentImplementation } from '@a2ui/react/v0_9';
+@@
+-const safeOfferSchema = z.custom<Offer>(isSafeOffer, 'Offer must use valid http/https source URLs');
+-const safeImagesSchema = z.custom<Offer['images']>((value) => {
++const safeOfferSchema: z.ZodType<Offer> = z.custom<Offer>(isSafeOffer, 'Offer must use valid http/https source URLs');
++const safeImagesSchema: z.ZodType<Offer['images']> = z.custom<Offer['images']>((value) => {
+@@
+-const cardApi = (name: string) => ({
+-  name,
+-  schema: z.object({
+-    offer: safeOfferSchema,
+-    disabled: CommonSchemas.DynamicBoolean,
+-    onSelect: CommonSchemas.Action,
+-  }),
+-});
+-
+ type CardProps = { offer: Offer; disabled?: boolean; onSelect?: () => void };
+-function cardImplementation(name: string, Card: (props: CardProps) => ReactElement | null) {
+-  return createComponentImplementation(cardApi(name), ({ props }) => (
++type CardApiProps = {
++  offer: Offer;
++  disabled: z.infer<typeof CommonSchemas.DynamicBoolean>;
++  onSelect: z.infer<typeof CommonSchemas.Action>;
++};
++const cardSchema: z.ZodType<CardApiProps> = z.object({
++  offer: safeOfferSchema,
++  disabled: CommonSchemas.DynamicBoolean,
++  onSelect: CommonSchemas.Action,
++});
++
++function createBoundComponent<Props extends object>(
++  name: string,
++  schema: z.ZodType<Props>,
++  render: FC<ReactA2uiComponentProps<ResolveA2uiProps<Props>>>,
++): ReactComponentImplementation {
++  const api: ComponentApi<z.ZodType<Props>> = { name, schema };
++  return createComponentImplementation(api, render);
++}
++
++function cardImplementation(name: string, Card: (props: CardProps) => ReactElement | null): ReactComponentImplementation {
++  return createBoundComponent(name, cardSchema, ({ props }) => (
+     <Card offer={props.offer} disabled={props.disabled} onSelect={props.onSelect} />
+   ));
+ }
+@@
+-export const ImageGalleryComponent = createComponentImplementation({
+-  name: 'ImageGallery',
+-  schema: z.object({ images: safeImagesSchema, title: CommonSchemas.DynamicString }),
+-}, ({ props }) => <OfferImageGallery images={props.images} title={props.title} />);
++type ImageGalleryApiProps = {
++  images: Offer['images'];
++  title: z.infer<typeof CommonSchemas.DynamicString>;
++};
++const imageGallerySchema: z.ZodType<ImageGalleryApiProps> = z.object({
++  images: safeImagesSchema,
++  title: CommonSchemas.DynamicString,
++});
++export const ImageGalleryComponent = createBoundComponent(
++  'ImageGallery',
++  imageGallerySchema,
++  ({ props }) => <OfferImageGallery images={props.images} title={props.title} />,
++);
+ 
+-const formTextApi = {
+-  name: 'FormTextField',
+-  schema: z.object({
+-    label: CommonSchemas.DynamicString,
+-    value: CommonSchemas.DynamicString,
+-    placeholder: CommonSchemas.DynamicString.optional(),
+-    disabled: CommonSchemas.DynamicBoolean.optional(),
+-  }),
++type FormTextFieldApiProps = {
++  label: z.infer<typeof CommonSchemas.DynamicString>;
++  value: z.infer<typeof CommonSchemas.DynamicString>;
++  placeholder?: z.infer<typeof CommonSchemas.DynamicString>;
++  disabled?: z.infer<typeof CommonSchemas.DynamicBoolean>;
+ };
+-
+-export const FormTextFieldComponent = createComponentImplementation(formTextApi, ({ props }) => (
++const formTextSchema: z.ZodType<FormTextFieldApiProps> = z.object({
++  label: CommonSchemas.DynamicString,
++  value: CommonSchemas.DynamicString,
++  placeholder: CommonSchemas.DynamicString.optional(),
++  disabled: CommonSchemas.DynamicBoolean.optional(),
++});
++export const FormTextFieldComponent = createBoundComponent('FormTextField', formTextSchema, ({ props }) => (
+   <label className="a2ui-form-field">
+@@
+-const formChoiceApi = {
+-  name: 'FormChoicePicker',
+-  schema: z.object({
+-    label: CommonSchemas.DynamicString,
+-    options: z.array(z.object({ label: z.string().max(160), value: z.string().max(160) }).strict()).max(20),
+-    value: CommonSchemas.DynamicString,
+-    disabled: CommonSchemas.DynamicBoolean.optional(),
+-  }),
++type FormChoicePickerApiProps = {
++  label: z.infer<typeof CommonSchemas.DynamicString>;
++  options: Array<{ label: string; value: string }>;
++  value: z.infer<typeof CommonSchemas.DynamicString>;
++  disabled?: z.infer<typeof CommonSchemas.DynamicBoolean>;
+ };
+-
+-export const FormChoicePickerComponent = createComponentImplementation(formChoiceApi, ({ props }) => (
++const formChoiceSchema: z.ZodType<FormChoicePickerApiProps> = z.object({
++  label: CommonSchemas.DynamicString,
++  options: z.array(z.object({ label: z.string().max(160), value: z.string().max(160) }).strict()).max(20),
++  value: CommonSchemas.DynamicString,
++  disabled: CommonSchemas.DynamicBoolean.optional(),
++});
++export const FormChoicePickerComponent = createBoundComponent('FormChoicePicker', formChoiceSchema, ({ props }) => (
+@@
+-export const everydayCatalog = new Catalog(
++const registeredComponents: ReactComponentImplementation[] = [
++  EventCardComponent,
++  JourneyCardComponent,
++  AppointmentCardComponent,
++  GovernmentCardComponent,
++  ServiceCardComponent,
++  LeisureCardComponent,
++  EverydayOfferComponent,
++  ImageGalleryComponent,
++  FormTextFieldComponent,
++  FormChoicePickerComponent,
++];
++
++export const everydayCatalog: Catalog<ReactComponentImplementation> = new Catalog<ReactComponentImplementation>(
+   CATALOG_ID,
+   'v0.9',
+-  [
+-    EventCardComponent,
+-    JourneyCardComponent,
+-    AppointmentCardComponent,
+-    GovernmentCardComponent,
+-    ServiceCardComponent,
+-    LeisureCardComponent,
+-    EverydayOfferComponent,
+-    ImageGalleryComponent,
+-    FormTextFieldComponent,
+-    FormChoicePickerComponent,
+-  ],
++  registeredComponents,
+ );
+*** End Patch

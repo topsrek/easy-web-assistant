@@ -1,0 +1,46 @@
+{
+  "name": "easy-web-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "set \"PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers\" && concurrently -k -n web,server \"vite --host 127.0.0.1\" \"tsx watch server/index.ts\"",
+    "build": "tsc --noEmit && vite build",
+    "start": "set \"PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers\" && tsx server/index.ts",
+    "test": "set \"PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers\" && vitest run",
+    "test:e2e": "set \"PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers\" && playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@a2ui/react": "0.12.0",
+    "@a2ui/web_core": "0.12.0",
+    "@google/genai": "latest",
+    "@radix-ui/react-dialog": "latest",
+    "@radix-ui/react-slot": "latest",
+    "class-variance-authority": "latest",
+    "clsx": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "lucide-react": "latest",
+    "playwright": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwind-merge": "latest",
+    "ws": "latest",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@types/ws": "latest",
+    "@vitejs/plugin-react": "latest",
+    "concurrently": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest"
+  }
+}
