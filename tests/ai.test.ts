@@ -5,6 +5,7 @@ import { demoOffers } from '../server/demo.js';
 import { AssistantAI, type AiClientFactory } from '../server/ai.js';
 import { loadConfig } from '../server/config.js';
 import { VoiceSession, voiceClientOptions, type VoiceClientFactory } from '../server/voice.js';
+import type { WebsiteObservation } from '../server/automation/types.js';
 
 const settings = loadConfig({ DEMO_MODE: 'false', AI_PROVIDER: 'gemini', GEMINI_API_KEY: 'test-key', GEMINI_MODEL: 'gemini-test', GEMMA_MODEL: 'gemma-test', GEMINI_LIVE_MODEL: 'live-test' });
 const response = (text: string) => ({ text });
@@ -66,6 +67,38 @@ describe('AssistantAI', () => {
     expect(ai.status()).toMatchObject({ available: false, fallback: expect.stringContaining('Add GEMINI_API_KEY') });
     await expect(ai.interpretTask('Find an event')).rejects.toThrow('Google AI is not configured');
     await expect(ai.summarizeObservation(demoOffers('event', 'http://127.0.0.1:3001'))).rejects.toThrow('Google AI is not configured');
+  });
+  it('refuses website planning in demo or without configured live credentials', () => {
+    const factory = vi.fn();
+    const demoAI = new AssistantAI(loadConfig({ DEMO_MODE: 'true' }), factory as unknown as AiClientFactory);
+    expect(() => demoAI.websitePlanner()).toThrow('Live website planning needs a configured model and DEMO_MODE=false');
+    const missingAI = new AssistantAI(loadConfig({ DEMO_MODE: 'false', AI_PROVIDER: 'gemini' }), factory as unknown as AiClientFactory);
+    expect(() => missingAI.websitePlanner()).toThrow('Live website planning needs a configured model and DEMO_MODE=false');
+    expect(factory).not.toHaveBeenCalled();
+  });
+
+  it('reuses the already-created model client and returns only validated observed plans', async () => {
+    const offers = demoOffers('event', 'http://127.0.0.1:3001');
+    const observation: WebsiteObservation = {
+      id: 'observation-1', url: 'https://events.example.test/', title: 'Events', observedAt: new Date().toISOString(),
+      text: 'Jazz listings',
+      links: [{ id: 'detail-link', text: 'Event details', url: 'https://events.example.test/jazz' }],
+      images: [], structuredData: [],
+    };
+    const client = modelClient(() => '{"action":"follow_link","linkId":"detail-link"}');
+    const ai = new AssistantAI(settings, client.factory);
+    expect(client.factory).toHaveBeenCalledTimes(1);
+    const planner = ai.websitePlanner();
+    expect(client.factory).toHaveBeenCalledTimes(1);
+    await expect(planner.plan('Find the event details', observation, offers, [])).resolves.toEqual({
+      action: 'follow_link', linkId: 'detail-link',
+    });
+    expect(client.generateContent).toHaveBeenCalledTimes(1);
+    expect(client.generateContent.mock.calls[0][0].model).toBe('gemma-test');
+
+    const invalidClient = modelClient(() => '{"action":"follow_link","linkId":"not-observed"}');
+    const invalidPlanner = new AssistantAI(settings, invalidClient.factory).websitePlanner();
+    await expect(invalidPlanner.plan('Find details', observation, offers, [])).rejects.toThrow('unknown or previously visited link');
   });
 
   it('returns readable auth errors without leaking SDK details', async () => {

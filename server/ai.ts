@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { kindSchema, offerSchema, type Offer, type TaskKind } from '../shared/schema.js';
 import { config, type AppConfig } from './config.js';
+import { GemmaWebsitePlanner } from './automation/planner.js';
 
 type GenerateResponse = { text?: string };
 type ModelClient = {
@@ -61,6 +62,12 @@ export class AssistantAI {
   }
 
   status() { return assistantAIStatus(this.settings); }
+
+  websitePlanner() {
+    const client = this.client;
+    if (!client) throw new Error('Live website planning needs a configured model and DEMO_MODE=false.');
+    return new GemmaWebsitePlanner(this.settings, () => client);
+  }
 
   async interpretTask(text: string): Promise<{ kind: TaskKind | null; text: string }> {
     const boundedText = text.trim().slice(0, 6000);
